@@ -1,101 +1,147 @@
-import Image from "next/image";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { 
+  Briefcase, 
+  Search, 
+  Mail, 
+  FileText, 
+  Send, 
+  CheckCircle2,
+  ArrowRight 
+} from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="container py-10">
+      {/* Hero Section */}
+      <div className="text-center mb-16">
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+          Automate Your Job Search with{" "}
+          <span className="text-primary">AI</span>
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+          Connect your Gmail, upload your resume, and let our AI find jobs and send 
+          personalized applications in Dutch automatically.
+        </p>
+        <div className="flex justify-center gap-4">
+          <Link href="/auth/signin">
+            <Button size="lg">
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Features Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        <Card>
+          <CardHeader>
+            <Search className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>Smart Job Search</CardTitle>
+            <CardDescription>
+              Automatically search LinkedIn and Indeed for jobs matching your criteria
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Mail className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>Find HR Contacts</CardTitle>
+            <CardDescription>
+              Automatically scrape company websites to find HR email addresses
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <FileText className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>AI Cover Letters</CardTitle>
+            <CardDescription>
+              Generate personalized cover letters in Dutch using GPT-4o
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Send className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>Auto Send</CardTitle>
+            <CardDescription>
+              Send applications directly from your Gmail account
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CheckCircle2 className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>Track Progress</CardTitle>
+            <CardDescription>
+              Monitor all your applications in a comprehensive dashboard
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Briefcase className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>Daily Limits</CardTitle>
+            <CardDescription>
+              Set daily job limits to control your application volume
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+
+      {/* How It Works */}
+      <div className="bg-muted rounded-lg p-8 mb-16">
+        <h2 className="text-3xl font-bold text-center mb-8">How It Works</h2>
+        <div className="grid md:grid-cols-4 gap-8">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              1
+            </div>
+            <h3 className="font-semibold mb-2">Connect Gmail</h3>
+            <p className="text-sm text-muted-foreground">
+              Sign in with Google and authorize Gmail access
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              2
+            </div>
+            <h3 className="font-semibold mb-2">Set Preferences</h3>
+            <p className="text-sm text-muted-foreground">
+              Upload resume and set your job preferences
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              3
+            </div>
+            <h3 className="font-semibold mb-2">AI Processing</h3>
+            <p className="text-sm text-muted-foreground">
+              Our AI finds jobs, finds contacts, and writes cover letters
+            </p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              4
+            </div>
+            <h3 className="font-semibold mb-2">Review & Send</h3>
+            <p className="text-sm text-muted-foreground">
+              Review generated applications and send with one click
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
