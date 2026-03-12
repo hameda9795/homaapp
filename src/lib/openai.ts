@@ -1,8 +1,12 @@
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not set')
+  }
+  return new OpenAI({ apiKey })
+}
 
 export async function generateCoverLetter(
   jobTitle: string,
@@ -11,6 +15,8 @@ export async function generateCoverLetter(
   resumeText: string,
   userName: string
 ): Promise<string> {
+  const openai = getOpenAIClient()
+  
   const prompt = `Schrijf een professionele sollicitatiebrief in het NEDERLANDS voor de functie van ${jobTitle} bij ${companyName}.
 
 Gebruik deze vacaturebeschrijving:
@@ -53,6 +59,8 @@ De brief moet lijken alsof hij door een echt persoon is geschreven, niet door AI
 }
 
 export async function findCompanyWebsite(companyName: string): Promise<string | null> {
+  const openai = getOpenAIClient()
+  
   const prompt = `Zoek naar de officiële website van dit bedrijf: ${companyName}
 
 Geef ALLEEN de volledige URL terug (bijvoorbeeld: https://www.company.com). 
