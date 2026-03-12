@@ -66,7 +66,7 @@ const statusLabels: Record<JobStatus, string> = {
 }
 
 export default function Dashboard() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [jobs, setJobs] = useState<JobApplication[]>([])
   const [loading, setLoading] = useState(true)

@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { searchJobs, findHREmail } from '@/lib/api'
 import { generateCoverLetter } from '@/lib/openai'
 import { delay } from '@/lib/utils'
+import { JobSearchResult } from '@/lib/api'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     const jobsToProcess = Math.min(remainingJobs, 10) // Process max 10 per request
-    const allJobs: any[] = []
+    const allJobs: JobSearchResult[] = []
 
     // Search for each job title
     for (const jobTitle of profile.jobTitles.slice(0, 2)) {

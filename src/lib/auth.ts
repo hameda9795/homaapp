@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id
         

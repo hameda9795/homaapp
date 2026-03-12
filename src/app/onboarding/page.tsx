@@ -10,12 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { Upload, Briefcase, MapPin, Languages, Mail, Settings, CheckCircle2 } from "lucide-react"
+import { Upload, Briefcase, MapPin, Mail, Settings, CheckCircle2 } from "lucide-react"
 
 const DAILY_LIMITS = [5, 10, 20, 50, 70, 100]
 
 export default function Onboarding() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
