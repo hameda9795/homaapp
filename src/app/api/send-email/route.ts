@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
+      console.error('Send email: No session user ID')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

@@ -7,7 +7,7 @@ export default withAuth(
     const { token } = req.nextauth
 
     // Public paths
-    if (pathname === "/" || pathname.startsWith("/auth")) {
+    if (pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/_next")) {
       return NextResponse.next()
     }
 

@@ -25,12 +25,18 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         // Use email as ID if sub is not available
         session.user.id = token.sub || token.email || ""
+        // Also set email and name from token
+        session.user.email = token.email || session.user.email
+        session.user.name = token.name || session.user.name
+        session.user.image = token.picture || session.user.image
       }
       return session
     },
     async jwt({ token, account, profile }) {
       if (account && profile) {
         token.email = profile.email
+        token.name = profile.name
+        token.picture = profile.image
       }
       return token
     },
@@ -52,5 +58,19 @@ declare module "next-auth" {
       email?: string | null
       image?: string | null
     }
+  }
+  
+  interface Profile {
+    email?: string
+    name?: string
+    image?: string
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    email?: string
+    name?: string
+    picture?: string
   }
 }

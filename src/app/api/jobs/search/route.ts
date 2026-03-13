@@ -11,6 +11,7 @@ export async function POST() {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
+      console.error('Jobs search: No session user ID')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

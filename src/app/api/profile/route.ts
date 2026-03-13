@@ -7,39 +7,52 @@ import { put } from '@vercel/blob'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // First try to find user by ID
     let user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: session.user.id },
     })
 
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: session.user.email,
-          name: session.user.name,
-          image: session.user.image,
-        },
+    // If not found by ID, try by email (fallback for old sessions)
+    if (!user && session.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
       })
+      
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.name,
+            image: session.user.image,
+          },
+        })
+      }
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     const profile = await prisma.userProfile.findUnique({
       where: { userId: user.id },
     })
 
-    return NextResponse.json({ profile })
+    return NextResponse.json({ profile, user: { id: user.id, email: user.email, name: user.name } })
   } catch (error) {
     console.error('Error fetching profile:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error', details: String(error) }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -53,15 +66,17 @@ export async function POST(request: NextRequest) {
     const sources = JSON.parse(formData.get('sources') as string || '[]')
     const dailyJobLimit = parseInt(formData.get('dailyJobLimit') as string || '10')
 
-    // Find or create user by email
+    // Find or create user by ID (more reliable than email)
     let user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: session.user.id },
     })
 
     if (!user) {
+      // Create user with ID from session
       user = await prisma.user.create({
         data: {
-          email: session.user.email,
+          id: session.user.id,
+          email: session.user.email || `user-${session.user.id}@placeholder.com`,
           name: session.user.name,
           image: session.user.image,
         },
