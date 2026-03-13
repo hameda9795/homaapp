@@ -16,13 +16,14 @@ export async function GET() {
       where: { id: session.user.id },
     })
 
-    // If not found by ID, try by email (fallback for old sessions)
+    // If not found by ID, try by email (use existing user)
     if (!user && session.user?.email) {
       user = await prisma.user.findUnique({
         where: { email: session.user.email },
       })
       
       if (!user) {
+        // Create new user only if not found by email
         user = await prisma.user.create({
           data: {
             id: session.user.id,
@@ -66,13 +67,20 @@ export async function POST(request: NextRequest) {
     const sources = JSON.parse(formData.get('sources') as string || '[]')
     const dailyJobLimit = parseInt(formData.get('dailyJobLimit') as string || '10')
 
-    // Find or create user by ID (more reliable than email)
+    // First try to find user by ID
     let user = await prisma.user.findUnique({
       where: { id: session.user.id },
     })
 
+    // If not found by ID, try to find by email (use existing user)
+    if (!user && session.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      })
+    }
+
     if (!user) {
-      // Create user with ID from session
+      // Create new user if not found
       user = await prisma.user.create({
         data: {
           id: session.user.id,
