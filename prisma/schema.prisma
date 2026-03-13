@@ -13,15 +13,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -35,17 +34,17 @@ model Session {
 }
 
 model User {
-  id                   String            @id @default(cuid())
-  email                String            @unique
-  emailVerified        DateTime?
-  name                 String?
-  image                String?
-  accounts             Account[]
-  sessions             Session[]
-  profile              UserProfile?
-  jobApplications      JobApplication[]
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  id              String           @id @default(cuid())
+  email           String           @unique
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  emailVerified   DateTime?
+  image           String?
+  name            String?
+  accounts        Account[]
+  jobApplications JobApplication[]
+  sessions        Session[]
+  profile         UserProfile?
 }
 
 model VerificationToken {
@@ -57,71 +56,49 @@ model VerificationToken {
 }
 
 model UserProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Resume
-  resumeUrl       String?
-  resumeText      String?  @db.Text
-  
-  // Job Preferences
-  jobTitles       String[] // Array of job titles
-  education       String?
-  location        String?
-  languages       String[]
-  
-  // Job Sources
-  sources         JobSource[]
-  
-  // Daily Limit
-  dailyJobLimit   Int      @default(10)
-  
-  // Onboarding Status
-  isOnboarded     Boolean  @default(false)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String      @id @default(cuid())
+  userId        String      @unique
+  resumeUrl     String?
+  resumeText    String?
+  jobTitles     String[]
+  education     String?
+  location      String?
+  languages     String[]
+  sources       JobSource[]
+  dailyJobLimit Int         @default(10)
+  isOnboarded   Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JobApplication {
+  id              String    @id @default(cuid())
+  userId          String
+  jobId           String?
+  employerName    String
+  employerWebsite String?
+  jobTitle        String
+  jobDescription  String?
+  jobApplyLink    String?
+  jobLocation     String?
+  jobCity         String?
+  jobCountry      String?
+  hrEmail         String?
+  emailSource     String?
+  coverLetter     String?
+  status          JobStatus @default(PENDING)
+  appliedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId, employerName])
 }
 
 enum JobSource {
   LINKEDIN
   INDEED
-}
-
-model JobApplication {
-  id                String          @id @default(cuid())
-  userId            String
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Job Details
-  jobId             String?
-  employerName      String
-  employerWebsite   String?
-  jobTitle          String
-  jobDescription    String?         @db.Text
-  jobApplyLink      String?
-  jobLocation       String?
-  jobCity           String?
-  jobCountry        String?
-  
-  // Contact Info
-  hrEmail           String?
-  emailSource       String?         // Source of the email (e.g., "careers@company.com")
-  
-  // Cover Letter
-  coverLetter       String?         @db.Text
-  
-  // Status
-  status            JobStatus       @default(PENDING)
-  
-  // Metadata
-  appliedAt         DateTime?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  
-  // Unique constraint per user and job
-  @@unique([userId, jobId, employerName])
 }
 
 enum JobStatus {
