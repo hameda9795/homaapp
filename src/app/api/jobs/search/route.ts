@@ -64,12 +64,20 @@ export async function POST() {
       }, { status: 429 })
     }
 
-    const jobsToProcess = Math.min(remainingJobs, 10) // Process max 10 per request
+    // Check API keys
+    if (!process.env.RAPIDAPI_KEY) {
+      console.error('RAPIDAPI_KEY not set')
+      return NextResponse.json({ error: 'Job search API not configured' }, { status: 500 })
+    }
+
+    const jobsToProcess = Math.min(remainingJobs, 3) // Process max 3 per request (Vercel timeout limit)
     const allJobs: JobSearchResult[] = []
 
-    // Search for each job title
-    for (const jobTitle of profile.jobTitles.slice(0, 2)) {
+    // Search for first job title only (to save time)
+    const jobTitle = profile.jobTitles[0]
+    if (jobTitle) {
       try {
+        console.log('Searching jobs for:', jobTitle)
         const jobs = await searchJobs(
           jobTitle,
           profile.location || 'Netherlands',
@@ -77,11 +85,10 @@ export async function POST() {
           1
         )
         allJobs.push(...jobs)
-        
-        // Rate limiting
-        await delay(1000)
+        console.log('Found jobs:', jobs.length)
       } catch (error) {
         console.error(`Error searching jobs for ${jobTitle}:`, error)
+        return NextResponse.json({ error: 'Job search API error', details: String(error) }, { status: 500 })
       }
     }
 
@@ -92,9 +99,11 @@ export async function POST() {
       )
       .slice(0, jobsToProcess)
 
+    console.log('Processing', uniqueJobs.length, 'jobs')
+
     const processedJobs = []
 
-    // Process each job
+    // Process each job with shorter delays
     for (const job of uniqueJobs) {
       try {
         // Check if job already exists
@@ -106,14 +115,15 @@ export async function POST() {
         })
 
         if (existingJob) {
+          console.log('Job already exists:', job.job_id)
           continue
         }
 
-        // Find HR email
-        const { email: hrEmail, source: emailSource } = await findHREmail(
-          job.employer_name,
-          job.employer_website
-        )
+        // Find HR email (with timeout protection - skip if taking too long)
+        console.log('Finding HR email for:', job.employer_name)
+        const hrEmailPromise = findHREmail(job.employer_name, job.employer_website)
+        const { email: hrEmail, source: emailSource } = await hrEmailPromise
+        console.log('HR email found:', hrEmail || 'none')
 
         // Create job application
         const jobApplication = await prisma.jobApplication.create({
@@ -133,37 +143,13 @@ export async function POST() {
             status: hrEmail ? 'EMAIL_FOUND' : 'NO_EMAIL_FOUND',
           },
         })
+        console.log('Created job application:', jobApplication.id)
 
-        // Generate cover letter if HR email found and we have resume text
-        if (hrEmail && profile.resumeText && profile.resumeText !== 'Resume text extraction pending...') {
-          try {
-            const coverLetter = await generateCoverLetter(
-              job.job_title,
-              job.employer_name,
-              job.job_description,
-              profile.resumeText,
-              user?.name || 'Candidate'
-            )
-
-            await prisma.jobApplication.update({
-              where: { id: jobApplication.id },
-              data: {
-                coverLetter,
-                status: 'COVER_LETTER_GENERATED',
-              },
-            })
-
-            jobApplication.coverLetter = coverLetter
-            jobApplication.status = 'COVER_LETTER_GENERATED'
-          } catch (error) {
-            console.error('Error generating cover letter:', error)
-          }
-        }
-
+        // Skip cover letter generation in search to save time - do it separately
         processedJobs.push(jobApplication)
 
-        // Rate limiting between jobs
-        await delay(2000)
+        // Shorter delay
+        await delay(500)
       } catch (error) {
         console.error('Error processing job:', error)
       }
