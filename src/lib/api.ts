@@ -83,8 +83,8 @@ export async function scrapeWebsiteContacts(domain: string): Promise<ContactInfo
   // Rate limiting - wait 500ms between calls
   await delay(500)
 
-  const url = new URL('https://website-contacts-scraper.p.rapidapi.com/scrape')
-  url.searchParams.append('domain', domain)
+  const url = new URL('https://website-contacts-scraper.p.rapidapi.com/scrape-contacts')
+  url.searchParams.append('query', domain)
 
   try {
     const response = await fetch(url.toString(), {
@@ -102,12 +102,14 @@ export async function scrapeWebsiteContacts(domain: string): Promise<ContactInfo
 
     const data = await response.json()
     console.log('API: Website scraper response:', JSON.stringify(data).slice(0, 300))
-    // Handle different response formats
-    if (data.emails && Array.isArray(data.emails)) {
-      return { emails: data.emails, phones: data.phones || [], socials: data.socials || [] }
-    }
-    if (data.data && data.data.emails) {
-      return { emails: data.data.emails, phones: data.data.phones || [], socials: data.data.socials || [] }
+    // Handle scrape-contacts response format
+    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+      const result = data.data[0]
+      return { 
+        emails: result.emails || [], 
+        phones: result.phones || [], 
+        socials: result.socials || [] 
+      }
     }
     return { emails: [], phones: [], socials: [] }
   } catch (error) {
