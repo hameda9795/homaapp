@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import { useAppState } from '@/lib/store'
 import { Loader2, Mail } from 'lucide-react'
 
@@ -13,7 +13,15 @@ export default function Step2() {
   const { state, updateState } = useAppState()
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<Array<{
+    job_id: string
+    employer_name: string
+    job_title: string
+    hrEmail: string | null
+    emailSource: string | null
+    hasEmail: boolean
+    error?: string
+  }>>([])
 
   // Redirect if no jobs
   if (state.jobs.length === 0) {
@@ -52,7 +60,7 @@ export default function Step2() {
         setResults(data.results || [])
         // Update jobs with email info
         const updatedJobs = state.jobs.map(job => {
-          const result = data.results?.find((r: any) => r.job_id === job.job_id)
+          const result = data.results?.find((r: { job_id: string }) => r.job_id === job.job_id)
           return result ? { 
             ...job, 
             hrEmail: result.hrEmail,

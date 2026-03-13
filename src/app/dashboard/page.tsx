@@ -11,8 +11,8 @@ import { Mail, FileText, ExternalLink, Eye, RefreshCw, Trash2 } from 'lucide-rea
 
 export default function Dashboard() {
   const router = useRouter()
-  const { state, updateState, resetState } = useAppState()
-  const [selectedJob, setSelectedJob] = useState<any>(null)
+  const { state, resetState } = useAppState()
+  const [selectedJob, setSelectedJob] = useState<typeof state.jobs[0] | null>(null)
 
   const handleReset = () => {
     if (confirm('Are you sure? All data will be lost.')) {

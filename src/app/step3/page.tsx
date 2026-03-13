@@ -16,7 +16,16 @@ export default function Step3() {
   const [resumeText, setResumeText] = useState(state.resumeText)
   const [userName, setUserName] = useState(state.userName)
   const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<Array<{
+    job_id: string
+    employer_name: string
+    job_title: string
+    hrEmail: string | null
+    coverLetter: string | null
+    emailSubject: string | null
+    hasCoverLetter: boolean
+    error?: string
+  }>>([])
 
   const jobsWithEmail = state.jobs.filter(j => j.hrEmail)
 
@@ -65,7 +74,7 @@ export default function Step3() {
         setResults(data.results || [])
         // Update jobs with cover letter info
         const updatedJobs = state.jobs.map(job => {
-          const result = data.results?.find((r: any) => r.job_id === job.job_id)
+          const result = data.results?.find((r: { job_id: string }) => r.job_id === job.job_id)
           return result ? { 
             ...job, 
             coverLetter: result.coverLetter,

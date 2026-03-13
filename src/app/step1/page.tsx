@@ -15,7 +15,17 @@ export default function Step1() {
   const [query, setQuery] = useState(state.query)
   const [location, setLocation] = useState(state.location)
   const [loading, setLoading] = useState(false)
-  const [jobs, setJobs] = useState<any[]>([])
+  const [jobs, setJobs] = useState<Array<{
+    job_id: string
+    employer_name: string
+    employer_website: string | null
+    job_title: string
+    job_description: string
+    job_apply_link: string
+    job_location: string
+    job_city: string | null
+    job_country: string | null
+  }>>([])
 
   const handleSearch = async () => {
     if (!query.trim()) return
