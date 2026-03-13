@@ -12,6 +12,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Find user by ID or email
+    let user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    })
+
+    if (!user && session.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      })
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const { jobId } = await request.json()
 
     if (!jobId) {
@@ -21,7 +36,7 @@ export async function POST(request: NextRequest) {
     const job = await prisma.jobApplication.findFirst({
       where: {
         id: jobId,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
@@ -40,7 +55,7 @@ export async function POST(request: NextRequest) {
     // Get user's account for access token
     const account = await prisma.account.findFirst({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         provider: 'google',
       },
     })

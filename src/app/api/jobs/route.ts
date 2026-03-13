@@ -13,13 +13,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Find user by ID or email
+    let user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    })
+
+    if (!user && session.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      })
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') as JobStatus | null
     const search = searchParams.get('search')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    const where: Prisma.JobApplicationWhereInput = { userId: session.user.id }
+    const where: Prisma.JobApplicationWhereInput = { userId: user.id }
 
     if (status) {
       where.status = status
@@ -66,6 +81,21 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Find user by ID or email
+    let user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    })
+
+    if (!user && session.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      })
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const body = await request.json()
     const { jobId, status } = body
 
@@ -76,7 +106,7 @@ export async function PATCH(request: NextRequest) {
     const job = await prisma.jobApplication.updateMany({
       where: {
         id: jobId,
-        userId: session.user.id,
+        userId: user.id,
       },
       data: {
         status,

@@ -15,17 +15,28 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Find user by ID first, then by email if not found
+    let user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    })
+
+    if (!user && session.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      })
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const profile = await prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
     })
 
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-    })
 
     // Check daily limit
     const today = new Date()
@@ -33,7 +44,7 @@ export async function POST() {
     
     const jobsToday = await prisma.jobApplication.count({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         createdAt: { gte: today },
       },
     })
@@ -82,7 +93,7 @@ export async function POST() {
         // Check if job already exists
         const existingJob = await prisma.jobApplication.findFirst({
           where: {
-            userId: session.user.id,
+            userId: user.id,
             jobId: job.job_id,
           },
         })
@@ -100,7 +111,7 @@ export async function POST() {
         // Create job application
         const jobApplication = await prisma.jobApplication.create({
           data: {
-            userId: session.user.id,
+            userId: user.id,
             jobId: job.job_id,
             employerName: job.employer_name,
             employerWebsite: job.employer_website,

@@ -11,24 +11,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Find user by ID or email
+    let user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    })
+
+    if (!user && session.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      })
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const { jobId } = await request.json()
 
     if (!jobId) {
       return NextResponse.json({ error: 'Job ID required' }, { status: 400 })
     }
 
-    const [profile, job, user] = await Promise.all([
+    const [profile, job] = await Promise.all([
       prisma.userProfile.findUnique({
-        where: { userId: session.user.id },
+        where: { userId: user.id },
       }),
       prisma.jobApplication.findFirst({
         where: {
           id: jobId,
-          userId: session.user.id,
+          userId: user.id,
         },
-      }),
-      prisma.user.findUnique({
-        where: { id: session.user.id },
       }),
     ])
 
