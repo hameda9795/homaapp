@@ -15,26 +15,33 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('Session user:', { id: session.user.id, email: session.user.email })
+
     // Find user by ID first, then by email if not found
     let user = await prisma.user.findUnique({
       where: { id: session.user.id },
     })
+    console.log('Found user by ID:', user?.id || 'not found')
 
     if (!user && session.user?.email) {
       user = await prisma.user.findUnique({
         where: { email: session.user.email },
       })
+      console.log('Found user by email:', user?.id || 'not found')
     }
 
     if (!user) {
+      console.error('User not found for session:', session.user)
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     const profile = await prisma.userProfile.findUnique({
       where: { userId: user.id },
     })
+    console.log('Found profile:', profile?.id || 'not found')
 
     if (!profile) {
+      console.error('Profile not found for user:', user.id)
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
