@@ -83,10 +83,8 @@ export async function scrapeWebsiteContacts(domain: string): Promise<ContactInfo
   // Rate limiting - wait 500ms between calls
   await delay(500)
 
-  const url = new URL('https://website-contacts-scraper.p.rapidapi.com/scrape-contacts')
-  url.searchParams.append('query', domain)
-  url.searchParams.append('match_email_domain', 'false')
-  url.searchParams.append('external_matching', 'false')
+  const url = new URL('https://website-contacts-scraper.p.rapidapi.com/scrape')
+  url.searchParams.append('domain', domain)
 
   try {
     const response = await fetch(url.toString(), {
@@ -103,7 +101,15 @@ export async function scrapeWebsiteContacts(domain: string): Promise<ContactInfo
     }
 
     const data = await response.json()
-    return data.data || { emails: [], phones: [], socials: [] }
+    console.log('API: Website scraper response:', JSON.stringify(data).slice(0, 300))
+    // Handle different response formats
+    if (data.emails && Array.isArray(data.emails)) {
+      return { emails: data.emails, phones: data.phones || [], socials: data.socials || [] }
+    }
+    if (data.data && data.data.emails) {
+      return { emails: data.data.emails, phones: data.data.phones || [], socials: data.data.socials || [] }
+    }
+    return { emails: [], phones: [], socials: [] }
   } catch (error) {
     console.error('Error scraping website contacts:', error)
     return { emails: [], phones: [], socials: [] }
@@ -173,16 +179,24 @@ export async function findHREmail(companyName: string, websiteUrl: string | null
   // Scrape website contacts
   const contacts = await scrapeWebsiteContacts(domain)
 
-  // Filter for HR emails
-  const allEmails = contacts.emails.map(e => e.value)
-  const hrEmails = filterHREmails(allEmails)
+  // Filter for HR emails - handle case where emails is undefined
+  const emails: string[] = []
+  if (contacts.emails && Array.isArray(contacts.emails)) {
+    for (const e of contacts.emails) {
+      if (typeof e === 'string') {
+        emails.push(e)
+      } else if (e && typeof e === 'object' && e.value) {
+        emails.push(e.value)
+      }
+    }
+  }
+  
+  const hrEmails = filterHREmails(emails)
 
   if (hrEmails.length > 0) {
-    // Find the email source
-    const emailObj = contacts.emails.find(e => e.value === hrEmails[0])
     return { 
       email: hrEmails[0], 
-      source: emailObj?.sources?.[0] || domain 
+      source: domain 
     }
   }
 
