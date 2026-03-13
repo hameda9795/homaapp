@@ -1,0 +1,44 @@
+# Test API Endpoints Locally
+# Use with VS Code REST Client extension or similar
+
+### Test Job Search (Step 1)
+POST http://localhost:3000/api/jobs/search
+Content-Type: application/json
+
+{
+  "query": "Software Engineer",
+  "location": "Amsterdam"
+}
+
+### Test Find Emails (Step 2)
+POST http://localhost:3000/api/jobs/find-emails
+Content-Type: application/json
+
+{
+  "jobs": [
+    {
+      "job_id": "test-1",
+      "employer_name": "Google",
+      "employer_website": "https://www.google.com",
+      "job_title": "Software Engineer"
+    }
+  ]
+}
+
+### Test Generate Cover Letter (Step 3)
+POST http://localhost:3000/api/jobs/generate-cover
+Content-Type: application/json
+
+{
+  "jobs": [
+    {
+      "job_id": "test-1",
+      "employer_name": "Google",
+      "job_title": "Software Engineer",
+      "job_description": "We are looking for a talented software engineer...",
+      "hrEmail": "careers@google.com"
+    }
+  ],
+  "resumeText": "Experienced software engineer with 5 years of experience in React, Node.js, and Python. Built scalable web applications serving millions of users.",
+  "userName": "John Doe"
+}

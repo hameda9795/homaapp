@@ -21,7 +21,6 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toast": "^1.2.15",
     "@vercel/blob": "^2.3.1",
-    "axios": "^1.13.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
@@ -31,10 +30,9 @@
     "prisma": "^5.22.0",
     "react": "^18",
     "react-dom": "^18",
-    "react-hook-form": "^7.71.2",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.3.6"
+    "zod": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.19.37",
