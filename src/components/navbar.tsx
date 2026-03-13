@@ -1,13 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Briefcase, Sun, Moon, LogOut, User } from "lucide-react"
+import { Briefcase, Sun, Moon, LayoutDashboard, Search } from "lucide-react"
 import { useTheme } from "next-themes"
 
 export function Navbar() {
-  const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
 
   return (
@@ -19,57 +17,31 @@ export function Navbar() {
         </Link>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          {session?.user ? (
-            <>
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">
-                  Dashboard
-                </Button>
-              </Link>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => signOut()}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
-
-              <Link href="/auth/signin">
-                <Button size="sm">
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
-              </Link>
-            </>
-          )}
+          <Link href="/step1">
+            <Button variant="ghost" size="sm">
+              <Search className="h-4 w-4 mr-2" />
+              Search Jobs
+            </Button>
+          </Link>
+          
+          <Link href="/dashboard">
+            <Button variant="ghost" size="sm">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Dashboard
+            </Button>
+          </Link>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
         </div>
       </div>
     </nav>
