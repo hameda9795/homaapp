@@ -24,18 +24,16 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      // Allow sign in
+    async signIn() {
       return true
     },
-    async session({ session, token, user }) {
-      // Send properties to the client
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub || user?.id
+        session.user.id = token.sub || ""
       }
       return session
     },
-    async jwt({ token, user, account, profile, isNewUser }) {
+    async jwt({ token }) {
       return token
     },
   },
