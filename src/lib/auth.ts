@@ -24,12 +24,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
-      console.log("SignIn callback:", { user, account, profile })
-      return true
-    },
     async redirect({ url, baseUrl }) {
-      console.log("Redirect callback:", { url, baseUrl })
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`
       // Allows callback URLs on the same origin
@@ -68,9 +63,9 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   session: {
-    strategy: "jwt",
+    strategy: "database",
   },
-  debug: true, // Enable debug mode
+  debug: false,
 }
 
 declare module "next-auth" {
