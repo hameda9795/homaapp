@@ -24,37 +24,18 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+    async signIn({ user, account, profile, email, credentials }) {
+      // Allow sign in
+      return true
     },
-    async session({ session, token }) {
-      if (session.user && token) {
-        session.user.id = token.sub as string
-        session.user.isOnboarded = token.isOnboarded as boolean
+    async session({ session, token, user }) {
+      // Send properties to the client
+      if (session.user) {
+        session.user.id = token.sub || user?.id
       }
       return session
     },
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.sub = user.id
-        
-        // Check if user is onboarded
-        const profile = await prisma.userProfile.findUnique({
-          where: { userId: user.id },
-        })
-        token.isOnboarded = profile?.isOnboarded ?? false
-      }
-      
-      if (account) {
-        token.accessToken = account.access_token
-        token.refreshToken = account.refresh_token
-        token.accessTokenExpires = account.expires_at
-      }
-      
+    async jwt({ token, user, account, profile, isNewUser }) {
       return token
     },
   },
@@ -63,9 +44,8 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
-  debug: false,
 }
 
 declare module "next-auth" {
@@ -75,16 +55,6 @@ declare module "next-auth" {
       name?: string | null
       email?: string | null
       image?: string | null
-      isOnboarded?: boolean
     }
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    accessToken?: string
-    refreshToken?: string
-    accessTokenExpires?: number
-    isOnboarded?: boolean
   }
 }
