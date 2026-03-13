@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { put } from '@vercel/blob'
 
 export async function GET() {
   try {
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     
+    const resume = formData.get('resume') as File | null
     const jobTitles = formData.get('jobTitles') as string
     const education = formData.get('education') as string
     const location = formData.get('location') as string
@@ -66,14 +68,29 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Skip file upload for now (Vercel is read-only)
-    const resumeText = "Resume text extraction pending..."
+    let resumeUrl: string | null = null
+    let resumeText: string | null = null
+
+    // Upload resume to Vercel Blob if provided
+    if (resume) {
+      try {
+        const blob = await put(`resumes/${user.id}-${Date.now()}-${resume.name}`, resume, {
+          access: 'public',
+        })
+        resumeUrl = blob.url
+        resumeText = "Resume uploaded successfully. Text extraction pending..."
+      } catch (uploadError) {
+        console.error('Error uploading resume:', uploadError)
+        // Continue without resume if upload fails
+      }
+    }
 
     // Upsert profile
     const profile = await prisma.userProfile.upsert({
       where: { userId: user.id },
       update: {
-        resumeText,
+        ...(resumeUrl && { resumeUrl }),
+        ...(resumeText && { resumeText }),
         jobTitles: jobTitles.split(',').map(t => t.trim()).filter(Boolean),
         education,
         location,
@@ -84,6 +101,7 @@ export async function POST(request: NextRequest) {
       },
       create: {
         userId: user.id,
+        resumeUrl,
         resumeText,
         jobTitles: jobTitles.split(',').map(t => t.trim()).filter(Boolean),
         education,
