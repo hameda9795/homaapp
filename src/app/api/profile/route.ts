@@ -8,12 +8,27 @@ import { join } from 'path'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Find or create user by email
+    let user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image,
+        },
+      })
+    }
+
     const profile = await prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
     })
 
     return NextResponse.json({ profile })
@@ -26,7 +41,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -40,6 +55,21 @@ export async function POST(request: NextRequest) {
     const sources = JSON.parse(formData.get('sources') as string || '[]')
     const dailyJobLimit = parseInt(formData.get('dailyJobLimit') as string || '10')
 
+    // Find or create user by email
+    let user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image,
+        },
+      })
+    }
+
     let resumeUrl: string | null = null
     let resumeText: string | null = null
 
@@ -50,20 +80,18 @@ export async function POST(request: NextRequest) {
       
       // Save file
       const uploadDir = join(process.cwd(), 'public', 'uploads')
-      const fileName = `${session.user.id}-${Date.now()}-${resume.name}`
+      const fileName = `${user.id}-${Date.now()}-${resume.name}`
       const filePath = join(uploadDir, fileName)
       
       await writeFile(filePath, buffer)
       resumeUrl = `/uploads/${fileName}`
 
-      // For PDF/DOCX text extraction, we'll need additional libraries
-      // For now, we'll store the file and extract text client-side or use a service
       resumeText = "Resume text extraction pending..."
     }
 
     // Upsert profile
     const profile = await prisma.userProfile.upsert({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       update: {
         ...(resumeUrl && { resumeUrl }),
         ...(resumeText && { resumeText }),
@@ -76,7 +104,7 @@ export async function POST(request: NextRequest) {
         isOnboarded: true,
       },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         resumeUrl,
         resumeText,
         jobTitles: jobTitles.split(',').map(t => t.trim()).filter(Boolean),
@@ -92,6 +120,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ profile })
   } catch (error) {
     console.error('Error saving profile:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error', details: String(error) }, { status: 500 })
   }
 }

@@ -23,9 +23,16 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub || ""
+        // Use email as ID if sub is not available
+        session.user.id = token.sub || token.email || ""
       }
       return session
+    },
+    async jwt({ token, account, profile }) {
+      if (account && profile) {
+        token.email = profile.email
+      }
+      return token
     },
   },
   pages: {

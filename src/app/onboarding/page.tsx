@@ -61,11 +61,18 @@ export default function Onboarding() {
         body: data,
       })
 
+      console.log("Response status:", response.status)
+      const responseData = await response.json()
+      console.log("Response data:", responseData)
+
       if (response.ok) {
         router.push("/dashboard")
+      } else {
+        alert("Error: " + JSON.stringify(responseData))
       }
     } catch (error) {
       console.error("Error saving profile:", error)
+      alert("Error saving profile: " + error)
     } finally {
       setIsSubmitting(false)
     }
