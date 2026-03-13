@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { extractDomain, filterHREmails, delay } from './utils'
 
 // JSearch API configuration
@@ -40,25 +39,33 @@ export async function searchJobs(
     throw new Error('JSearch API key not configured')
   }
 
-  const options = {
-    method: 'GET',
-    url: 'https://jsearch.p.rapidapi.com/search',
-    params: {
-      query: `${query} in ${location}`,
-      page: page.toString(),
-      num_pages: numPages.toString(),
-    },
-    headers: {
-      'X-RapidAPI-Key': JSEARCH_API_KEY,
-      'X-RapidAPI-Host': JSEARCH_HOST,
-    },
-  }
+  const url = new URL('https://jsearch.p.rapidapi.com/search')
+  url.searchParams.append('query', `${query} in ${location}`)
+  url.searchParams.append('page', page.toString())
+  url.searchParams.append('num_pages', numPages.toString())
 
   try {
-    const response = await axios.request(options)
-    return response.data.data || []
-  } catch (error) {
-    console.error('Error searching jobs:', error)
+    console.log('API: Calling JSearch with query:', query)
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': JSEARCH_API_KEY,
+        'X-RapidAPI-Host': JSEARCH_HOST,
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API: JSearch error:', response.status, errorText)
+      throw new Error(`API error ${response.status}: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('API: JSearch response:', data.data?.length || 0, 'jobs')
+    return data.data || []
+  } catch (error: Error | unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('API: Error searching jobs:', message)
     throw error
   }
 }
@@ -71,21 +78,25 @@ export async function scrapeWebsiteContacts(domain: string): Promise<ContactInfo
   // Rate limiting - wait 500ms between calls
   await delay(500)
 
-  const options = {
-    method: 'GET',
-    url: 'https://website-contacts-scraper.p.rapidapi.com/scrape',
-    params: {
-      domain: domain,
-    },
-    headers: {
-      'X-RapidAPI-Key': WEBSITE_CONTACTS_API_KEY,
-      'X-RapidAPI-Host': WEBSITE_CONTACTS_HOST,
-    },
-  }
+  const url = new URL('https://website-contacts-scraper.p.rapidapi.com/scrape')
+  url.searchParams.append('domain', domain)
 
   try {
-    const response = await axios.request(options)
-    return response.data.data || { emails: [], phones: [], socials: [] }
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': WEBSITE_CONTACTS_API_KEY,
+        'X-RapidAPI-Host': WEBSITE_CONTACTS_HOST,
+      },
+    })
+
+    if (!response.ok) {
+      console.error('API: Website scraper error:', response.status)
+      return { emails: [], phones: [], socials: [] }
+    }
+
+    const data = await response.json()
+    return data.data || { emails: [], phones: [], socials: [] }
   } catch (error) {
     console.error('Error scraping website contacts:', error)
     return { emails: [], phones: [], socials: [] }
@@ -101,21 +112,25 @@ export async function findCompanyWebsiteGoogle(companyName: string): Promise<str
   await delay(500)
 
   try {
-    const response = await axios.post(
-      'https://google.serper.dev/search',
-      {
+    const response = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': SERPER_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         q: `${companyName} official website`,
         num: 3,
-      },
-      {
-        headers: {
-          'X-API-KEY': SERPER_API_KEY,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+      }),
+    })
 
-    const organic = response.data.organic || []
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    const organic = data.organic || []
+    
     for (const result of organic) {
       const link = result.link
       if (link && !link.includes('linkedin.com') && !link.includes('indeed.com')) {

@@ -31,22 +31,29 @@ export default function Step1() {
     if (!query.trim()) return
     
     setLoading(true)
+    console.log('Step1: Starting search for:', query, location)
+    
     try {
       const response = await fetch('/api/jobs/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, location }),
       })
+      
+      console.log('Step1: Response status:', response.status)
 
       const data = await response.json()
+      console.log('Step1: Response data:', data)
+      
       if (response.ok) {
         setJobs(data.jobs || [])
       } else {
-        alert('Error: ' + data.error)
+        alert('Error: ' + (data.error || 'Unknown error') + '\n' + (data.details || ''))
       }
-    } catch (error) {
-      console.error('Error:', error)
-      alert('Failed to search jobs')
+    } catch (error: Error | unknown) {
+      console.error('Step1 Error:', error)
+      const message = error instanceof Error ? error.message : String(error)
+      alert('Failed to search jobs: ' + message)
     } finally {
       setLoading(false)
     }
