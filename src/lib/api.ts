@@ -40,9 +40,12 @@ export async function searchJobs(
   }
 
   const url = new URL('https://jsearch.p.rapidapi.com/search')
-  url.searchParams.append('query', `${query} in ${location}`)
+  // Location must be in query parameter, not as separate param
+  url.searchParams.append('query', `${query} ${location}`)
   url.searchParams.append('page', page.toString())
   url.searchParams.append('num_pages', numPages.toString())
+  url.searchParams.append('country', 'nl')
+  url.searchParams.append('date_posted', 'all')
 
   try {
     console.log('API: Calling JSearch with query:', query)
@@ -56,11 +59,13 @@ export async function searchJobs(
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('API: JSearch error:', response.status, errorText)
+      console.error('API: JSearch HTTP error:', response.status)
+      console.error('API: JSearch error body:', errorText)
       throw new Error(`API error ${response.status}: ${errorText}`)
     }
 
     const data = await response.json()
+    console.log('API: JSearch raw response:', JSON.stringify(data).slice(0, 500))
     console.log('API: JSearch response:', data.data?.length || 0, 'jobs')
     return data.data || []
   } catch (error: Error | unknown) {
@@ -78,8 +83,10 @@ export async function scrapeWebsiteContacts(domain: string): Promise<ContactInfo
   // Rate limiting - wait 500ms between calls
   await delay(500)
 
-  const url = new URL('https://website-contacts-scraper.p.rapidapi.com/scrape')
-  url.searchParams.append('domain', domain)
+  const url = new URL('https://website-contacts-scraper.p.rapidapi.com/scrape-contacts')
+  url.searchParams.append('query', domain)
+  url.searchParams.append('match_email_domain', 'false')
+  url.searchParams.append('external_matching', 'false')
 
   try {
     const response = await fetch(url.toString(), {
