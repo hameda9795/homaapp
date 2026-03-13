@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
 
 export async function GET() {
   try {
@@ -12,7 +10,6 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Find or create user by email
     let user = await prisma.user.findUnique({
       where: { email: session.user.email },
     })
@@ -47,7 +44,6 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     
-    const resume = formData.get('resume') as File | null
     const jobTitles = formData.get('jobTitles') as string
     const education = formData.get('education') as string
     const location = formData.get('location') as string
@@ -70,31 +66,14 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    let resumeUrl: string | null = null
-    let resumeText: string | null = null
-
-    // Process resume if uploaded
-    if (resume) {
-      const bytes = await resume.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      
-      // Save file
-      const uploadDir = join(process.cwd(), 'public', 'uploads')
-      const fileName = `${user.id}-${Date.now()}-${resume.name}`
-      const filePath = join(uploadDir, fileName)
-      
-      await writeFile(filePath, buffer)
-      resumeUrl = `/uploads/${fileName}`
-
-      resumeText = "Resume text extraction pending..."
-    }
+    // Skip file upload for now (Vercel is read-only)
+    const resumeText = "Resume text extraction pending..."
 
     // Upsert profile
     const profile = await prisma.userProfile.upsert({
       where: { userId: user.id },
       update: {
-        ...(resumeUrl && { resumeUrl }),
-        ...(resumeText && { resumeText }),
+        resumeText,
         jobTitles: jobTitles.split(',').map(t => t.trim()).filter(Boolean),
         education,
         location,
@@ -105,7 +84,6 @@ export async function POST(request: NextRequest) {
       },
       create: {
         userId: user.id,
-        resumeUrl,
         resumeText,
         jobTitles: jobTitles.split(',').map(t => t.trim()).filter(Boolean),
         education,
