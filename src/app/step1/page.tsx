@@ -7,13 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppState } from '@/lib/store'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, Loader2, GraduationCap, Languages } from 'lucide-react'
 
 export default function Step1() {
   const router = useRouter()
   const { state, updateState } = useAppState()
   const [query, setQuery] = useState(state.query)
   const [location, setLocation] = useState(state.location)
+  const [language, setLanguage] = useState<'en' | 'nl'>(state.language)
+  const [education, setEducation] = useState(state.education)
   const [loading, setLoading] = useState(false)
   const [jobs, setJobs] = useState<Array<{
     job_id: string
@@ -64,7 +66,9 @@ export default function Step1() {
     updateState({ 
       step: 2, 
       query, 
-      location, 
+      location,
+      language,
+      education,
       jobs: selectedJobs 
     })
     router.push('/step2')
@@ -98,6 +102,36 @@ export default function Step1() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="education">
+                <GraduationCap className="inline h-4 w-4 mr-1" />
+                Education (Optional)
+              </Label>
+              <Input
+                id="education"
+                placeholder="e.g. Bachelor in Computer Science"
+                value={education}
+                onChange={(e) => setEducation(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="language">
+                <Languages className="inline h-4 w-4 mr-1" />
+                Language
+              </Label>
+              <select
+                id="language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as 'en' | 'nl')}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="nl">Dutch (Nederlands)</option>
+                <option value="en">English</option>
+              </select>
             </div>
           </div>
 

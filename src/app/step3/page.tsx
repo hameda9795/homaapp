@@ -65,7 +65,9 @@ export default function Step3() {
         body: JSON.stringify({ 
           jobs: jobsWithEmail,
           resumeText,
-          userName
+          userName,
+          education: state.education,
+          language: state.language
         }),
       })
 

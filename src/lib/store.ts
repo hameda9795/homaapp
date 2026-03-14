@@ -25,6 +25,8 @@ export interface AppState {
   step: number
   query: string
   location: string
+  language: 'en' | 'nl'
+  education: string
   resumeText: string
   userName: string
   jobs: Job[]
@@ -34,6 +36,8 @@ const defaultState: AppState = {
   step: 1,
   query: '',
   location: 'Netherlands',
+  language: 'nl', // Default to Dutch
+  education: '',
   resumeText: '',
   userName: '',
   jobs: [],

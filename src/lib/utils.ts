@@ -24,9 +24,26 @@ export function isValidEmail(email: string): boolean {
 }
 
 export function filterHREmails(emails: string[]): string[] {
-  const hrKeywords = ['careers', 'hr', 'jobs', 'recruiting', 'hiring', 'info', 'contact']
-  return emails.filter(email => {
+  // Accept all common business emails, not just HR-specific
+  const validKeywords = [
+    'careers', 'hr', 'jobs', 'recruiting', 'hiring', 'talent', 'vacancy', 'werkenbij',
+    'info', 'contact', 'hello', 'support', 'sales',
+    'marketing', 'business', 'corporate', 'office',
+    'admin', 'general', 'enquiries', 'partners', 'press', 'media',
+    'groningen', 'amsterdam', 'leeuwarden', 'utrecht', 'rotterdam', 'eindhoven', 'denhaag',
+    'apenheul', 'deventer', 'apeldoorn', 'nijmegen', 'arnhem', 'zwolle',
+    'bydpr', 'ops', 'vbs', 'relations', 'investor'
+  ]
+  
+  const filtered = emails.filter(email => {
     const localPart = email.split('@')[0]?.toLowerCase() || ''
-    return hrKeywords.some(keyword => localPart.includes(keyword))
+    return validKeywords.some(keyword => localPart.includes(keyword))
   })
+  
+  // If no specific emails found, return first 3 emails as fallback
+  if (filtered.length === 0 && emails.length > 0) {
+    return emails.slice(0, 3)
+  }
+  
+  return filtered
 }

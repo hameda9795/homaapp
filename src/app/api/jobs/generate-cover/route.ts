@@ -3,7 +3,7 @@ import { generateCoverLetter } from '@/lib/openai'
 
 export async function POST(request: NextRequest) {
   try {
-    const { jobs, resumeText, userName = 'Candidate' } = await request.json()
+    const { jobs, resumeText, userName = 'Candidate', education = '', language = 'nl' } = await request.json()
 
     if (!Array.isArray(jobs) || jobs.length === 0) {
       return NextResponse.json({ error: 'Jobs array is required' }, { status: 400 })
@@ -36,10 +36,14 @@ export async function POST(request: NextRequest) {
           job.employer_name,
           job.job_description || '',
           resumeText,
-          userName
+          userName,
+          education,
+          language
         )
 
-        const emailSubject = `Sollicitatie: ${job.job_title} bij ${job.employer_name}`
+        const emailSubject = language === 'nl' 
+          ? `Sollicitatie: ${job.job_title} bij ${job.employer_name}`
+          : `Application: ${job.job_title} at ${job.employer_name}`
 
         results.push({
           job_id: job.job_id,

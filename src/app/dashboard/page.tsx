@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { useAppState } from '@/lib/store'
-import { Mail, FileText, ExternalLink, Eye, RefreshCw, Trash2 } from 'lucide-react'
+import { Mail, FileText, ExternalLink, Eye, RefreshCw, Trash2, Download } from 'lucide-react'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -207,8 +207,21 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {/* Instructions */}
+              {selectedJob.coverLetter && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-sm">
+                  <p className="font-medium text-blue-800 dark:text-blue-200 mb-2">How to apply:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-blue-700 dark:text-blue-300">
+                    <li>Click &quot;Compose in Gmail&quot; to open Gmail with pre-filled email</li>
+                    <li>Click &quot;Download as Word&quot; to save the cover letter</li>
+                    <li>In Gmail, click the paperclip icon 📎 to attach the downloaded file</li>
+                    <li>Send your application!</li>
+                  </ol>
+                </div>
+              )}
+
               {/* Actions */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {selectedJob.job_apply_link && (
                   <Button asChild className="flex-1">
                     <a href={selectedJob.job_apply_link} target="_blank" rel="noopener noreferrer">
@@ -218,18 +231,74 @@ export default function Dashboard() {
                   </Button>
                 )}
                 {selectedJob.hrEmail && (
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => {
-                      const subject = selectedJob.emailSubject || `Application: ${selectedJob.job_title}`
-                      const body = selectedJob.coverLetter || ''
-                      window.open(`mailto:${selectedJob.hrEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
-                    }}
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Open in Email Client
-                  </Button>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        // Open Gmail compose with short email body
+                        const subject = selectedJob.emailSubject || `Application: ${selectedJob.job_title}`
+                        const hrEmail = selectedJob.hrEmail || ''
+                        const companyName = selectedJob.employer_name
+                        const jobTitle = selectedJob.job_title
+                        
+                        // Create a short, friendly email body (NOT the cover letter)
+                        const emailBody = `Dear Hiring Manager,
+
+I hope this email finds you well. I am writing to express my interest in the ${jobTitle} position at ${companyName}.
+
+I have attached my cover letter and CV for your review. I would welcome the opportunity to discuss how my background and skills could benefit your team.
+
+Looking forward to hearing from you.
+
+Best regards`
+                        
+                        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(hrEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`
+                        window.open(gmailUrl, '_blank')
+                      }}
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      Compose in Gmail
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      className="flex-1"
+                      onClick={() => {
+                        // Download cover letter as Word document
+                        const coverLetter = selectedJob.coverLetter || ''
+                        const subject = selectedJob.emailSubject || 'Cover Letter'
+                        
+                        // Create a simple HTML-based Word document
+                        const htmlContent = `
+                          <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                          <head>
+                            <meta charset="utf-8">
+                            <title>${subject}</title>
+                          </head>
+                          <body>
+                            <p style="white-space: pre-wrap;">${coverLetter.replace(/\n/g, '<br/>')}</p>
+                          </body>
+                          </html>
+                        `
+                        
+                        const blob = new Blob(['\ufeff', htmlContent], {
+                          type: 'application/msword'
+                        })
+                        
+                        const url = URL.createObjectURL(blob)
+                        const link = document.createElement('a')
+                        link.href = url
+                        link.download = `Cover_Letter_${selectedJob.employer_name.replace(/\s+/g, '_')}.doc`
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+                        URL.revokeObjectURL(url)
+                      }}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download as Word
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
