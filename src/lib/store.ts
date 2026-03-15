@@ -25,7 +25,11 @@ export interface AppState {
   step: number
   query: string
   location: string
-  language: 'en' | 'nl'
+  language: 'netherlands' | 'english' | 'both'
+  experience: 'entry' | 'mid' | 'senior' | 'any'
+  jobType: 'fulltime' | 'parttime' | 'contract' | 'internship' | 'any'
+  workMode: 'onsite' | 'hybrid' | 'remote' | 'any'
+  datePosted: '24h' | '3d' | '7d' | '30d' | 'all'
   education: string
   resumeText: string
   userName: string
@@ -36,7 +40,11 @@ const defaultState: AppState = {
   step: 1,
   query: '',
   location: 'Netherlands',
-  language: 'nl', // Default to Dutch
+  language: 'both',
+  experience: 'any',
+  jobType: 'any',
+  workMode: 'any',
+  datePosted: '30d',
   education: '',
   resumeText: '',
   userName: '',

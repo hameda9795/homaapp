@@ -4,8 +4,18 @@ import { searchJobs } from '@/lib/api'
 export async function POST(request: NextRequest) {
   try {
     console.log('API: Job search started')
-    const { query, location = 'Netherlands', page = 1 } = await request.json()
-    console.log('API: Received query:', query, 'location:', location)
+    const { 
+      query, 
+      location = 'Netherlands', 
+      language = 'both',
+      experience = 'any',
+      jobType = 'any',
+      workMode = 'any',
+      datePosted = '30d',
+      page = 1 
+    } = await request.json()
+    
+    console.log('API: Search params:', { query, location, language, experience, jobType, workMode, datePosted })
 
     if (!query) {
       console.log('API: Missing query')
@@ -18,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('API: Calling searchJobs...')
-    const jobs = await searchJobs(query, location, page, 1)
+    const jobs = await searchJobs(query, location, language, experience, jobType, workMode, datePosted, page, 1)
     console.log('API: Found jobs:', jobs.length)
 
     return NextResponse.json({ jobs })
