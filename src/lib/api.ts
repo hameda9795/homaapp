@@ -435,9 +435,14 @@ async function findBestContactWithHunter(
 
     // انتخاب بهترین
     const best = scoredContacts[0]
-    if (!best || best.score < 20) {
-      console.log('No good match found in Hunter')
+    if (!best) {
+      console.log('No emails found in Hunter')
       return null
+    }
+    
+    // اگر score خیلی پایین بود، هشدار بده ولی بازم برگردون (بهتر از info@ است)
+    if (best.score < 20) {
+      console.log('⚠️ Low score but using Hunter result anyway (better than generic info@)')
     }
 
     // ⭐ بررسی اعتبار با Email Verifier
