@@ -13,18 +13,22 @@ export async function POST(request: NextRequest) {
 
     for (const job of jobs) {
       try {
-        const { email: hrEmail, source: emailSource } = await findHREmail(
+        const contact = await findHREmail(
           job.employer_name,
-          job.employer_website
+          job.employer_website,
+          job.job_title
         )
 
         results.push({
           job_id: job.job_id,
           employer_name: job.employer_name,
           job_title: job.job_title,
-          hrEmail,
-          emailSource,
-          hasEmail: !!hrEmail,
+          hrEmail: contact?.email || null,
+          emailSource: contact?.source || null,
+          contactName: contact?.name || null,
+          contactPosition: contact?.position || null,
+          confidence: contact?.confidence || 0,
+          hasEmail: !!contact?.email,
         })
       } catch (error) {
         console.error(`Error finding email for ${job.employer_name}:`, error)

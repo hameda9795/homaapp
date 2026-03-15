@@ -70,7 +70,7 @@ export async function findBestContactForJob(
   const jobLower = jobTitle.toLowerCase();
   const relevantKeywords: string[] = [];
   
-  for (const [category, keywords] of Object.entries(JOB_TITLE_MAPPINGS)) {
+  for (const [, keywords] of Object.entries(JOB_TITLE_MAPPINGS)) {
     if (keywords.some(k => jobLower.includes(k))) {
       relevantKeywords.push(...keywords);
     }
@@ -115,7 +115,7 @@ export async function findBestContactForJob(
   const best = scoredContacts[0];
   if (best && best.score > 30) {
     // بررسی اعتبار ایمیل
-    const verification = await verifyEmail(best.email.value);
+    const verification = await verifyEmail(best.email.value) as { result?: string; score?: number } | null;
     if (verification && verification.result === 'deliverable') {
       return {
         email: best.email.value,
@@ -163,7 +163,7 @@ async function domainSearch(domain: string): Promise<DomainSearchResult | null> 
 /**
  * Email Verifier API
  */
-async function verifyEmail(email: string): Promise<any | null> {
+async function verifyEmail(email: string): Promise<unknown | null> {
   const url = `https://api.hunter.io/v2/email-verifier?email=${email}&api_key=${HUNTER_API_KEY}`;
   
   try {

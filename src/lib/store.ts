@@ -12,6 +12,9 @@ export interface Job {
   job_location: string
   job_city: string | null
   job_country: string | null
+  job_employment_type?: string | null
+  job_is_remote?: boolean | null
+  job_posted_at?: string | null
   hrEmail?: string | null
   emailSource?: string | null
   coverLetter?: string | null

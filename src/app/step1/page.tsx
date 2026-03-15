@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { useAppState } from '@/lib/store'
+import { useAppState, Job } from '@/lib/store'
 import { 
   Search, 
   Loader2, 
@@ -119,7 +119,7 @@ export default function Step1() {
   }
 
   // Badge برای نمایش نوع کار
-  const getWorkModeBadge = (job: any) => {
+  const getWorkModeBadge = (job: Job) => {
     const isRemote = job.job_is_remote || job.job_location?.toLowerCase().includes('remote')
     const isHybrid = job.job_description?.toLowerCase().includes('hybrid')
     
@@ -129,7 +129,7 @@ export default function Step1() {
   }
 
   // Badge برای نوع employment
-  const getJobTypeBadge = (job: any) => {
+  const getJobTypeBadge = (job: Job) => {
     const type = job.job_employment_type?.toLowerCase() || ''
     if (type.includes('full')) return <Badge variant="secondary">Full-time</Badge>
     if (type.includes('part')) return <Badge variant="secondary">Part-time</Badge>
@@ -139,7 +139,7 @@ export default function Step1() {
   }
 
   // تاریخ انتشار
-  const getPostedDate = (job: any) => {
+  const getPostedDate = (job: Job) => {
     if (!job.job_posted_at) return null
     const date = new Date(job.job_posted_at)
     const now = new Date()

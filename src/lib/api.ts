@@ -35,6 +35,9 @@ export interface JobSearchResult {
   job_location: string
   job_city: string | null
   job_country: string | null
+  job_employment_type?: string | null
+  job_is_remote?: boolean | null
+  job_posted_at?: string | null
 }
 
 export interface ContactInfo {
@@ -98,9 +101,7 @@ export async function searchJobs(
   }
   
   // اضافه کردن job type
-  if (jobType === 'remote') {
-    searchQuery += ' remote'
-  } else if (jobType !== 'any') {
+  if (jobType !== 'any') {
     searchQuery += ` ${jobType}`
   }
   
@@ -192,7 +193,7 @@ export async function searchJobs(
 /**
  * فیلتر کردن jobها بر اساس زبان
  */
-function filterJobsByLanguage(jobs: any[], language: 'netherlands' | 'english'): any[] {
+function filterJobsByLanguage(jobs: JobSearchResult[], language: 'netherlands' | 'english'): JobSearchResult[] {
   return jobs.filter(job => {
     const title = (job.job_title || '').toLowerCase()
     const description = (job.job_description || '').toLowerCase()
@@ -214,7 +215,7 @@ function filterJobsByLanguage(jobs: any[], language: 'netherlands' | 'english'):
 /**
  * فیلتر کردن بر اساس experience level
  */
-function filterJobsByExperience(jobs: any[], experience: 'entry' | 'mid' | 'senior'): any[] {
+function filterJobsByExperience(jobs: JobSearchResult[], experience: 'entry' | 'mid' | 'senior'): JobSearchResult[] {
   return jobs.filter(job => {
     const title = (job.job_title || '').toLowerCase()
     const description = (job.job_description || '').toLowerCase()
@@ -245,7 +246,7 @@ function filterJobsByExperience(jobs: any[], experience: 'entry' | 'mid' | 'seni
 /**
  * فیلتر کردن بر اساس work mode
  */
-function filterJobsByWorkMode(jobs: any[], workMode: 'onsite' | 'hybrid' | 'remote'): any[] {
+function filterJobsByWorkMode(jobs: JobSearchResult[], workMode: 'onsite' | 'hybrid' | 'remote'): JobSearchResult[] {
   return jobs.filter(job => {
     const title = (job.job_title || '').toLowerCase()
     const description = (job.job_description || '').toLowerCase()
@@ -275,7 +276,7 @@ function filterJobsByWorkMode(jobs: any[], workMode: 'onsite' | 'hybrid' | 'remo
 /**
  * فیلتر کردن بر اساس job type
  */
-function filterJobsByJobType(jobs: any[], jobType: 'fulltime' | 'parttime' | 'contract' | 'internship'): any[] {
+function filterJobsByJobType(jobs: JobSearchResult[], jobType: 'fulltime' | 'parttime' | 'contract' | 'internship'): JobSearchResult[] {
   return jobs.filter(job => {
     const type = (job.job_employment_type || '').toLowerCase()
     const title = (job.job_title || '').toLowerCase()
@@ -298,7 +299,7 @@ function filterJobsByJobType(jobs: any[], jobType: 'fulltime' | 'parttime' | 'co
 /**
  * فیلتر کردن بر اساس date posted
  */
-function filterJobsByDatePosted(jobs: any[], datePosted: '24h' | '3d' | '7d' | '30d'): any[] {
+function filterJobsByDatePosted(jobs: JobSearchResult[], datePosted: '24h' | '3d' | '7d' | '30d'): JobSearchResult[] {
   const now = new Date()
   const daysMap = {
     '24h': 1,
@@ -385,7 +386,7 @@ async function findBestContactWithHunter(
     const jobLower = jobTitle.toLowerCase()
     const relevantKeywords: string[] = []
     
-    for (const [category, keywords] of Object.entries(JOB_TITLE_MAPPINGS)) {
+    for (const [, keywords] of Object.entries(JOB_TITLE_MAPPINGS)) {
       if (keywords.some(k => jobLower.includes(k))) {
         relevantKeywords.push(...keywords)
       }
@@ -440,7 +441,7 @@ async function findBestContactWithHunter(
     }
 
     // ⭐ بررسی اعتبار با Email Verifier
-    const verification = await verifyEmailWithHunter(best.email.value)
+    const verification = await verifyEmailWithHunter(best.email.value) as { result?: string; score?: number } | null
     
     const contact: FoundContact = {
       email: best.email.value,
@@ -450,8 +451,8 @@ async function findBestContactWithHunter(
       confidence: Math.min(best.score, 100),
       source: verification?.result === 'deliverable' ? 'hunter-verified' : 'hunter',
       verification: verification ? {
-        result: verification.result,
-        score: verification.score,
+        result: verification.result || 'unknown',
+        score: verification.score || 0,
       } : undefined,
     }
 
@@ -466,7 +467,7 @@ async function findBestContactWithHunter(
 /**
  * Hunter.io Email Verifier
  */
-async function verifyEmailWithHunter(email: string): Promise<any | null> {
+async function verifyEmailWithHunter(email: string): Promise<unknown | null> {
   if (!HUNTER_API_KEY) return null
   
   try {
